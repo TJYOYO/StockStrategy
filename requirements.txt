@@ -1,0 +1,7 @@
+# 股票策略脚本依赖包
+yfinance==0.2.38
+pandas==2.2.2
+numpy==1.26.4
+matplotlib==3.8.4
+ta==0.11.0
+python-dotenv==1.0.1
