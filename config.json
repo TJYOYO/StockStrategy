@@ -2,6 +2,25 @@
   "default_symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"],
   "default_period": "6mo",
   "default_interval": "1d",
+
+  "yfinance_settings": {
+    "max_retries": 10,
+    "retry_delay_min": 10.0,
+    "retry_delay_max": 20.0,
+    "rate_limit_delay_multiplier": 20.0,
+    "user_agents": [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    ],
+    "proxy": {
+      "enabled": true,
+      "url": "http://127.0.0.1:7890"
+    }
+  },
+
   "strategy_parameters": {
     "sma_short": 20,
     "sma_long": 50,
@@ -10,15 +29,22 @@
     "rsi_period": 14,
     "bb_period": 20,
     "bb_std": 2,
-    "buy_threshold": 3,
-    "sell_threshold": 3,
-    "signal_strength_threshold": 0.5
+    "buy_threshold": 2,
+    "sell_threshold": 2,
+    "signal_strength_threshold": 0.3
   },
+
   "trading_settings": {
     "initial_capital": 10000,
     "commission_rate": 0.001,
     "max_position_size": 0.2,
     "stop_loss_pct": 0.1,
     "take_profit_pct": 0.2
+  },
+
+  "data_quality": {
+    "min_data_points": 10,
+    "fallback_period": "1mo",
+    "validate_data": true
   }
 }

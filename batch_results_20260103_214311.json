@@ -1,0 +1,89 @@
+{
+  "timestamp": "20260103_214311",
+  "config": {
+    "symbols": [
+      "AAPL",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "TSLA",
+      "NVDA",
+      "META",
+      "NFLX"
+    ],
+    "period": "6mo",
+    "interval": "1d"
+  },
+  "results": [
+    {
+      "symbol": "AAPL",
+      "success": true,
+      "last_signal": "BUY",
+      "last_price": 182.4128806080114,
+      "signal_strength": 0.65,
+      "signal_date": "2025-12-08",
+      "total_signals": 3,
+      "buy_signals": 3,
+      "sell_signals": 0
+    },
+    {
+      "symbol": "MSFT",
+      "success": false,
+      "error": "分析失败或无信号"
+    },
+    {
+      "symbol": "GOOGL",
+      "success": false,
+      "error": "分析失败或无信号"
+    },
+    {
+      "symbol": "AMZN",
+      "success": true,
+      "last_signal": "BUY",
+      "last_price": 171.42843787550865,
+      "signal_strength": 0.65,
+      "signal_date": "2025-11-07",
+      "total_signals": 2,
+      "buy_signals": 2,
+      "sell_signals": 0
+    },
+    {
+      "symbol": "TSLA",
+      "success": true,
+      "last_signal": "BUY",
+      "last_price": 253.14654817652305,
+      "signal_strength": 0.65,
+      "signal_date": "2025-12-08",
+      "total_signals": 1,
+      "buy_signals": 1,
+      "sell_signals": 0
+    },
+    {
+      "symbol": "NVDA",
+      "success": false,
+      "error": "分析失败或无信号"
+    },
+    {
+      "symbol": "META",
+      "success": false,
+      "error": "分析失败或无信号"
+    },
+    {
+      "symbol": "NFLX",
+      "success": true,
+      "last_signal": "BUY",
+      "last_price": 659.0434712225654,
+      "signal_strength": 0.65,
+      "signal_date": "2025-12-10",
+      "total_signals": 1,
+      "buy_signals": 1,
+      "sell_signals": 0
+    }
+  ],
+  "summary": {
+    "total_stocks": 8,
+    "successful_analysis": 4,
+    "buy_recommendations": 4,
+    "sell_recommendations": 0
+  }
+}
