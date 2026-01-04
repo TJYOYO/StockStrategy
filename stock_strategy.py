@@ -270,12 +270,15 @@ class StockTrendStrategy:
             signal_strength = 0
             buy_signals = 0
             sell_signals = 0
+            buy_conditions = []
+            sell_conditions = []
 
             # 买入信号条件
             # 1. 价格在20日均线之上且20日均线在50日均线之上（上升趋势）
             if pd.notna(sma_20) and pd.notna(sma_50) and current_price > sma_20 and sma_20 > sma_50:
                 buy_signals += 1
                 signal_strength += 0.3
+                buy_conditions.append("价格在20日均线之上且20日均线在50日均线之上（上升趋势）")
 
             # 2. MACD金叉 (当前MACD > 信号线 且 前一时刻MACD <= 信号线)
             if (pd.notna(macd) and pd.notna(macd_signal) and
@@ -283,29 +286,34 @@ class StockTrendStrategy:
                 if macd > macd_signal and self.data['MACD'].iloc[i-1] <= self.data['MACD_signal'].iloc[i-1]:
                     buy_signals += 1
                     signal_strength += 0.2
+                    buy_conditions.append("MACD金叉（当前MACD > 信号线）")
 
             # 3. RSI从超卖区域回升 (RSI从低于30回升)
             if (pd.notna(rsi) and i > 0 and pd.notna(self.data['RSI'].iloc[i-1])):
                 if self.data['RSI'].iloc[i-1] < 30 and rsi > self.data['RSI'].iloc[i-1]:
                     buy_signals += 1
                     signal_strength += 0.2
+                    buy_conditions.append("RSI从超卖区域回升（低于30回升）")
 
             # 4. 价格触及布林带下轨
             if pd.notna(bb_lower) and current_price <= bb_lower * 1.02:
                 buy_signals += 1
                 signal_strength += 0.15
+                buy_conditions.append("价格触及布林带下轨")
 
             # 5. 成交量放大（仅当有成交量数据时）
             if (volume_col in self.data.columns and pd.notna(volume) and pd.notna(avg_volume) and 
                 avg_volume > 0 and volume > avg_volume * 1.2):
                 buy_signals += 1
                 signal_strength += 0.15
+                buy_conditions.append("成交量放大（超过20日均量20%）")
 
             # 卖出信号条件
             # 1. 价格在20日均线之下且20日均线在50日均线之下（下降趋势）
             if pd.notna(sma_20) and pd.notna(sma_50) and current_price < sma_20 and sma_20 < sma_50:
                 sell_signals += 1
                 signal_strength -= 0.3
+                sell_conditions.append("价格在20日均线之下且20日均线在50日均线之下（下降趋势）")
 
             # 2. MACD死叉 (当前MACD < 信号线 且 前一时刻MACD >= 信号线)
             if (pd.notna(macd) and pd.notna(macd_signal) and
@@ -313,23 +321,27 @@ class StockTrendStrategy:
                 if macd < macd_signal and self.data['MACD'].iloc[i-1] >= self.data['MACD_signal'].iloc[i-1]:
                     sell_signals += 1
                     signal_strength -= 0.2
+                    sell_conditions.append("MACD死叉（当前MACD < 信号线）")
 
             # 3. RSI从超买区域回落 (RSI从高于70回落)
             if (pd.notna(rsi) and i > 0 and pd.notna(self.data['RSI'].iloc[i-1])):
                 if self.data['RSI'].iloc[i-1] > 70 and rsi < self.data['RSI'].iloc[i-1]:
                     sell_signals += 1
                     signal_strength -= 0.2
+                    sell_conditions.append("RSI从超买区域回落（高于70回落）")
 
             # 4. 价格触及布林带上轨
             if pd.notna(bb_upper) and current_price >= bb_upper * 0.98:
                 sell_signals += 1
                 signal_strength -= 0.15
+                sell_conditions.append("价格触及布林带上轨")
 
             # 5. 成交量萎缩（仅当有成交量数据时）
             if (volume_col in self.data.columns and pd.notna(volume) and pd.notna(avg_volume) and 
                 avg_volume > 0 and volume < avg_volume * 0.8):
                 sell_signals += 1
                 signal_strength -= 0.15
+                sell_conditions.append("成交量萎缩（低于20日均量20%）")
 
             # 确定最终信号 - 降低信号触发阈值 to make signals more likely with mock data
             if buy_signals >= 2 and signal_strength > 0.3:  # Reduced from 3 and 0.5
@@ -341,7 +353,9 @@ class StockTrendStrategy:
                     'price': current_price,
                     'strength': signal_strength,
                     'buy_signals': buy_signals,
-                    'sell_signals': sell_signals
+                    'sell_signals': sell_signals,
+                    'buy_conditions': buy_conditions,
+                    'sell_conditions': sell_conditions
                 })
             elif sell_signals >= 2 and signal_strength < -0.3:  # Reduced from 3 and -0.5
                 self.data.loc[self.data.index[i], 'Signal'] = -1
@@ -352,7 +366,9 @@ class StockTrendStrategy:
                     'price': current_price,
                     'strength': signal_strength,
                     'buy_signals': buy_signals,
-                    'sell_signals': sell_signals
+                    'sell_signals': sell_signals,
+                    'buy_conditions': buy_conditions,
+                    'sell_conditions': sell_conditions
                 })
 
         self.signals = signals
@@ -424,12 +440,26 @@ class StockTrendStrategy:
         if self.data is None or self.data.empty:
             print("没有数据可绘制")
             return
+        
+        # 查找正确的收盘价列名
+        close_col = None
+        for col in self.data.columns:
+            if 'Close' in col:
+                close_col = col
+                break
+        
+        if close_col is None:
+            if 'Close' in self.data.columns:
+                close_col = 'Close'
+            else:
+                print(f"错误: 无法找到收盘价列，可用列: {list(self.data.columns)}")
+                return
             
         fig, axes = plt.subplots(3, 1, figsize=(15, 12))
         
         # 价格和移动平均线
         ax1 = axes[0]
-        ax1.plot(self.data.index, self.data['Close'], label='收盘价', linewidth=2)
+        ax1.plot(self.data.index, self.data[close_col], label='收盘价', linewidth=2)
         ax1.plot(self.data.index, self.data['SMA_20'], label='20日SMA', alpha=0.7)
         ax1.plot(self.data.index, self.data['SMA_50'], label='50日SMA', alpha=0.7)
         
@@ -438,11 +468,11 @@ class StockTrendStrategy:
         sell_dates = [s['date'] for s in self.signals if s['type'] == 'SELL'] if self.signals else []
         
         if buy_dates:
-            buy_prices = [self.data.loc[date, 'Close'] for date in buy_dates]
+            buy_prices = [self.data.loc[date, close_col] for date in buy_dates]
             ax1.scatter(buy_dates, buy_prices, color='green', s=100, marker='^', label='买入信号', zorder=5)
         
         if sell_dates:
-            sell_prices = [self.data.loc[date, 'Close'] for date in sell_dates]
+            sell_prices = [self.data.loc[date, close_col] for date in sell_dates]
             ax1.scatter(sell_dates, sell_prices, color='red', s=100, marker='v', label='卖出信号', zorder=5)
         
         ax1.set_title(f'{self.symbol} - 价格走势和交易信号')
@@ -540,13 +570,20 @@ class StockTrendStrategy:
             if last_signal['type'] == 'BUY':
                 print(f"  当前建议: 买入 {self.symbol}")
                 print(f"  理由: 检测到{last_signal['buy_signals']}个买入信号条件满足")
+                if 'buy_conditions' in last_signal and last_signal['buy_conditions']:
+                    print(f"  具体条件:")
+                    for j, condition in enumerate(last_signal['buy_conditions'], 1):
+                        print(f"    {j}. {condition}")
             elif last_signal['type'] == 'SELL':
                 print(f"  当前建议: 卖出 {self.symbol}")
                 print(f"  理由: 检测到{last_signal['sell_signals']}个卖出信号条件满足")
+                if 'sell_conditions' in last_signal and last_signal['sell_conditions']:
+                    print(f"  具体条件:")
+                    for j, condition in enumerate(last_signal['sell_conditions'], 1):
+                        print(f"    {j}. {condition}")
         else:
             print(f"  当前建议: 持有观望")
             print(f"  理由: 未检测到明确的买卖信号")
-
 
 def main():
     """主函数"""
